@@ -5,8 +5,9 @@ def configure(arguments):
     parameters={}
     #set defaults
     #location
-    parameters["on_apollo"]=False
+    parameters["on_apollo"]=True
     parameters["at_home"]=False
+    parameters["local"]=False
     #metric
     parameters["metric"]="cosine"
     #feature type
@@ -80,7 +81,7 @@ def setfilenames(parameters):
 
     parameters["thesaurus"]=parameters["corpus"]+"_"+parameters["thresholds"]+"_"+parameters["pos"]+"_"+parameters["features"]+"/"
 
-    parameters["directory"]=parameters[parent]+parameters["thesaurus"]
+    parameters["directory"]=parameters["parent"]+parameters["thesaurus"]
 
     return parameters
 
