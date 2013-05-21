@@ -1,6 +1,7 @@
 __author__ = 'juliewe'
 
 import conf
+import sys
 
 
 class Entry:
@@ -121,5 +122,5 @@ if __name__ =="__main__":
     parameters = conf.configure(sys.argv)
     mymatrix= SimMatrix(parameters["directory"])
     for entry in mymatrix.entrydict.values():
-        entry.topk(k)
+        entry.topk(parameters["k"])
         entry.display()
