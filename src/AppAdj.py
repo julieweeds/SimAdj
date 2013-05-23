@@ -5,6 +5,14 @@ import sys
 import math
 
 
+def makesimlist(list):
+    simlist = []
+    while len(list)>0:
+        id = list.pop()
+        score=float(list.pop())
+        simlist.append((score,id))
+    return simlist
+
 class Entry:
 
     def __init__(self,word,freq,width):
@@ -25,6 +33,10 @@ class Entry:
             self.size+=1
 
 #        print self.word+"\t"+str(self.size)
+
+    def addsimlist(self,simlist):
+        self.sims.append(simlist)
+        self.size=len(self.sims)
 
     def topk(self,k):
 
@@ -54,7 +66,7 @@ class Entry:
 
 class SimMatrix:
 
-    def __init__(self,directory,k):
+    def __init__(self,directory,k,flag):
         self.dir=directory
         self.simsfile="sims"
         self.freqfile="entries.totals"
@@ -64,6 +76,7 @@ class SimMatrix:
         self.k=k
         self.maxwidth=0
         self.adj_constant=0
+        self.adjust_flag=flag #whether to adjust similarities
 
         #read files
         self.readtotals()
@@ -104,7 +117,7 @@ class SimMatrix:
         neighfile=self.dir+self.neighfile
         instream=open(filename,'r')
         outstream=open(outfile,'w')
-        neighstream=open(neighfile,'w')
+
         print "Reading "+filename
         linesread=0
         for line in instream:
@@ -114,12 +127,8 @@ class SimMatrix:
             fields.reverse()
             word=str(fields.pop())
             if word in self.entrydict.keys():
-                self.entrydict[word].updatesims(fields)  #read in sims
-                self.adjust(word)                                    #adjust similarities for word
+                self.adjust(word,fields)  #adjust and add similarities
                 self.entrydict[word].output(outstream)          #write sims output file
-                self.entrydict[word].topk(self.k)   #keep only top k neighbours
-                #self.entrydict[word].display()  #display
-                self.entrydict[word].output(neighstream)                                #write neighbour output file
             else:
                 print "Error - no entry for word "+word
                 exit(1)
@@ -127,29 +136,44 @@ class SimMatrix:
                 print "Processed "+str(linesread)+" lines"
                 #break
 
-        neighstream.close()
+
         outstream.close()
         instream.close()
+        print "Finished reading input.  Generating neighbour file...."
+
+        neighstream=open(neighfile,'w')
+        done=0
+        for word in self.entrydict.keys():
+            if len(self.entrydict[word].sims)>0:
+                self.entrydict[word].topk(self.k)   #keep only top k neighbours
+                self.entrydict[word].display()  #display
+                self.entrydict[word].output(neighstream)                                #write neighbour output file
+            done+=1
+            if done%1000==0:
+                print "Completed "+str(done)+" neighbour sets"
+        neighstream.close()
 
 
-    def adjust(self,word):
+    def adjust(self,word,fields):
         #needs to be done at this level because need access to width/frequency info for all words
         entry = self.entrydict[word]
         mywidth = float(entry.width)
-        newsims=[]
-        for (score,neigh) in entry.sims:
-            if neigh in self.entrydict.keys():
-                neighwidth = float(self.entrydict[neigh].width)
-                adjfactor=2*mywidth*neighwidth/(mywidth+neighwidth) #harmonic mean of widths
-                adj = math.pow(self.adj_constant/adjfactor,0.5)
-                sim=1.0-(1.0/(score*adj + 1.0))
-                newsims.append((sim,neigh))
+        oldsims=makesimlist(fields)
+        for (score,neigh) in oldsims:
+            if self.adjust_flag:
+                if neigh in self.entrydict.keys():
+                    neighwidth = float(self.entrydict[neigh].width)
+                    adjfactor=2*mywidth*neighwidth/(mywidth+neighwidth) #harmonic mean of widths
+                    adj = math.pow(self.adj_constant/adjfactor,0.5)
+                    sim=1.0-(1.0/(score*adj + 1.0))
+                    entry.sims.append((sim,neigh))
+                else:
+                    print "Error: target word not in dictionary "+neigh
+                    entry.append((score,neigh))
             else:
-                print "Error: target word not in dictionary "+neigh
-                newsims.append((score,neigh))
-        entry.sims=newsims
+                entry.append((score,neigh))
 
 
 if __name__ =="__main__":
     parameters = conf.configure(sys.argv)
-    mymatrix= SimMatrix(parameters["directory"],parameters["k"])
+    mymatrix= SimMatrix(parameters["directory"],parameters["k"],parameters["adjust_flag"])

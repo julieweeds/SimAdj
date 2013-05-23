@@ -20,6 +20,9 @@ def configure(arguments):
     parameters["pos"]="nouns"
 
     parameters["k"]=1000
+    #do adjustments
+    parameters["adjust_flag"]=True
+
 
 
 
@@ -52,6 +55,10 @@ def configure(arguments):
             parameters["byblo"]=True
         if argument =="nouns":
             parameters["pos"]=["N"]
+        if argument == "adjust=False":
+            parameters["adjust_flag"]=False
+        if argument == "adjust=True":
+            parameters["adjust_flag"]=True
 
 
 
