@@ -19,7 +19,7 @@ def configure(arguments):
     parameters["thresholds"]="t100f100"
     parameters["pos"]="nouns"
 
-    parameters["k"]=10
+    parameters["k"]=1000
 
 
 
