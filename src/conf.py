@@ -23,7 +23,7 @@ def configure(arguments):
     #do adjustments
     parameters["adjust_flag"]=True
     parameters["adj_neighs"]=True #adjust neighs file or sims file
-
+    parameters["testing"]=False
 
 
 
@@ -59,6 +59,8 @@ def configure(arguments):
             parameters["adjust_flag"]=False
         if argument == "adjust=True":
             parameters["adjust_flag"]=True
+        if argument == "testing":
+            parameters["testing"]=True
 
 
 

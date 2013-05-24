@@ -22,6 +22,12 @@ class Entry:
         self.sims=[] #list of tuples (score,id)
         self.sorted=False
         self.size=0
+        self.maxsim=-1
+        self.avsim=-1
+        self.sdsim=-1
+        self.nosims=0
+        self.totalsims=0
+        self.totalsquares=0
 
 
     def updatesims(self,list):
@@ -54,6 +60,8 @@ class Entry:
     def display(self):
         print self.word+"\t"+"\t"+str(self.freq)+"\t"+str(self.width)
         print self.sims
+        if self.nosims>0:
+            print self.nosims, self.maxsim, self.avsim, self.sdsim
         print ""
 
     def output(self,outstream):
@@ -62,16 +70,21 @@ class Entry:
             outstream.write("\t"+word+"\t"+str(score))
         outstream.write("\n")
 
-
+    def analyse(self):
+        for (score,neigh) in self.sims:
+            if score > self.maxsim:
+                self.maxsim=score
+            self.totalsims+=score
+            self.totalsquares+=score*score
+            self.nosims+=1
+        self.avsim=float(self.totalsims)/float(self.nosims)
+        self.sdsim=math.pow((float(self.totalsquares)/float(self.nosims)) - (self.avsim * self.avsim),0.5)
 
 class SimMatrix:
 
-    def __init__(self,directory,k,flag,neighs):
+    def __init__(self,directory,k,flag,simsfile,testing):
         self.dir=directory
-        if neighs:
-            self.simsfile="neighbours.strings"
-        else:
-            self.simsfile="sims"
+        self.simsfile=simsfile
         self.freqfile="entries.totals"
         self.outfile=self.simsfile+".adj"
         self.neighfile=self.simsfile+".adj.neighbours"
@@ -80,6 +93,11 @@ class SimMatrix:
         self.maxwidth=0
         self.adj_constant=0
         self.adjust_flag=flag #whether to adjust similarities
+        self.testing=testing
+        if self.testing:
+            self.batchcount=10
+        else:
+            self.batchcount=1000
 
         #read files
         self.readtotals()
@@ -135,14 +153,19 @@ class SimMatrix:
             else:
                 print "Error - no entry for word "+word
                 exit(1)
-            if linesread%1000==0:
+            if linesread%self.batchcount==0:
                 print "Processed "+str(linesread)+" lines"
-                #break
+                if self.testing:
+                    break
 
 
         outstream.close()
         instream.close()
-        print "Finished reading input.  Generating neighbour file...."
+        print "Finished reading input."
+
+    def output_neighs(self):
+
+        print "Generating neighbour file...."
 
         neighstream=open(neighfile,'w')
         done=0
@@ -152,7 +175,7 @@ class SimMatrix:
                 self.entrydict[word].display()  #display
                 self.entrydict[word].output(neighstream)                                #write neighbour output file
             done+=1
-            if done%1000==0:
+            if done%self.batchcount==0:
                 print "Completed "+str(done)+" neighbour sets"
         neighstream.close()
 
@@ -172,11 +195,18 @@ class SimMatrix:
                     entry.sims.append((sim,neigh))
                 else:
                     print "Error: target word not in dictionary "+neigh
-                    entry.append((score,neigh))
+                    entry.sims.append((score,neigh))
             else:
-                entry.append((score,neigh))
+                entry.sims.append((score,neigh))
 
 
 if __name__ =="__main__":
     parameters = conf.configure(sys.argv)
-    mymatrix= SimMatrix(parameters["directory"],parameters["k"],parameters["adjust_flag"],parameters["adj_neighs"])
+
+    if parameters["adj_neighs"]:
+        simsfile="neighbours.strings"
+    else:
+        simsfile="sims"
+    mymatrix= SimMatrix(parameters["directory"],parameters["k"],parameters["adjust_flag"],simsfile,parameters["testing"])
+    mymatrix.output_neighs()
+
