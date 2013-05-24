@@ -22,7 +22,7 @@ def configure(arguments):
     parameters["k"]=1000
     #do adjustments
     parameters["adjust_flag"]=True
-
+    parameters["adj_neighs"]=True #adjust neighs file or sims file
 
 
 
@@ -85,6 +85,9 @@ def setfilenames(parameters):
 
     if parameters["on_apollo"]:
         parameters["parent"]="/mnt/lustre/scratch/inf/juliewe/FeatureExtractionToolkit/Byblo-2.2.0/"
+
+    if parameters["at_home"]:
+        parameters["parent"]="C:/Users/Julie/Documents/Github/Wordnet/data/"
 
     parameters["thesaurus"]=parameters["corpus"]+"_"+parameters["thresholds"]+"_"+parameters["pos"]+"_"+parameters["features"]+"/"
 

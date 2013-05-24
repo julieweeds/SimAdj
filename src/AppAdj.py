@@ -66,9 +66,12 @@ class Entry:
 
 class SimMatrix:
 
-    def __init__(self,directory,k,flag):
+    def __init__(self,directory,k,flag,neighs):
         self.dir=directory
-        self.simsfile="sims"
+        if neighs:
+            self.simsfile="neighbours.strings"
+        else:
+            self.simsfile="sims"
         self.freqfile="entries.totals"
         self.outfile=self.simsfile+".adj"
         self.neighfile=self.simsfile+".adj.neighbours"
@@ -176,4 +179,4 @@ class SimMatrix:
 
 if __name__ =="__main__":
     parameters = conf.configure(sys.argv)
-    mymatrix= SimMatrix(parameters["directory"],parameters["k"],parameters["adjust_flag"])
+    mymatrix= SimMatrix(parameters["directory"],parameters["k"],parameters["adjust_flag"],parameters["adj_neighs"])
