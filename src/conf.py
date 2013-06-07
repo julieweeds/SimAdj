@@ -1,6 +1,10 @@
 __author__ = 'juliewe'
 
+import re
+
 def configure(arguments):
+
+    factorPATT=re.compile('f=(.*)')
 
     parameters={}
     #set defaults
@@ -24,6 +28,8 @@ def configure(arguments):
     parameters["adjust_flag"]=True
     parameters["adj_neighs"]=True #adjust neighs file or sims file
     parameters["testing"]=False
+    parameters["fr_method"]="none"
+    parameters["factors"]=1000
 
 
 
@@ -61,6 +67,13 @@ def configure(arguments):
             parameters["adjust_flag"]=True
         if argument == "testing":
             parameters["testing"]=True
+        if argument=="nmf":
+            parameters["fr_method"]="nmf"
+        if argument=="svd":
+            parameters["fr_method"]="svd"
+        matchobj=factorPATT.match(argument)
+        if matchobj:
+            parameters["factors"]=matchobj.group(1)
 
 
 
@@ -92,6 +105,9 @@ def setfilenames(parameters):
         parameters["parent"]="C:/Users/Julie/Documents/Github/Wordnet/data/"
 
     parameters["thesaurus"]=parameters["corpus"]+"_"+parameters["thresholds"]+"_"+parameters["pos"]+"_"+parameters["features"]+"/"
+
+    if parameters["fr_method"] != "none":
+        parameters["thesaurus"]=parameters["thesaurus"]+parameters["fr_method"]+str(parameters["factors"])+"/"
 
     parameters["directory"]=parameters["parent"]+parameters["thesaurus"]
 

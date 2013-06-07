@@ -21,6 +21,9 @@ def mymean(total,count):
 def mysd(squaretotal,total,count):
     mean = mymean(total,count)
     var=float(squaretotal)/float(count)-mean*mean
+    if var <0:
+        print "Warning: negative variance "+str(var)
+        var=0
     return (mean,math.pow(var,0.5))
 
 class Entry:
@@ -136,6 +139,7 @@ class SimMatrix:
 
             l=line.rstrip()
             fields=l.split("\t")
+
             if len(fields)==3: #valid data line
 
                 word=fields[0]
